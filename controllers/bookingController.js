@@ -1,54 +1,88 @@
-const db = require('../config/db');
+const { Booking } = require('../models'); // Import the Booking model
 
 // Get all bookings
-exports.getAllBookings = (req, res) => {
-  db.query('SELECT * FROM Bookings', (error, results) => {
-    if (error) return res.status(500).send(error);
-    res.json(results);
-  });
+exports.getAllBookings = async (req, res) => {
+  try {
+    const bookings = await Booking.findAll();
+    res.json(bookings);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
 };
 
 // Get booking by ID
-exports.getBookingById = (req, res) => {
+exports.getBookingById = async (req, res) => {
   const { id } = req.params;
-  db.query('SELECT * FROM Bookings WHERE id = ?', [id], (error, results) => {
-    if (error) return res.status(500).send(error);
-    res.json(results[0]);
-  });
+  try {
+    const booking = await Booking.findByPk(id);
+    if (!booking) {
+      return res.status(404).json({ error: 'Booking not found' });
+    }
+    res.json(booking);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
 };
 
 // Create new booking
-exports.createBooking = (req, res) => {
+exports.createBooking = async (req, res) => {
   const { guestid, staffid, roomid, checkout_date, checkin_date, paymentid, status } = req.body;
-  db.query(
-    'INSERT INTO Bookings (guestid, staffid, roomid, checkout_date, checkin_date, paymentid, status) VALUES (?, ?, ?, ?, ?, ?, ?)',
-    [guestid, staffid, roomid, checkout_date, checkin_date, paymentid, status],
-    (error, results) => {
-      if (error) return res.status(500).send(error);
-      res.status(201).json({ id: results.insertId });
-    }
-  );
+  try {
+    const newBooking = await Booking.create({
+      guestid,
+      staffid,
+      roomid,
+      checkout_date,
+      checkin_date,
+      paymentid,
+      status,
+    });
+    res.status(201).json(newBooking);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
 };
 
 // Update booking by ID
-exports.updateBooking = (req, res) => {
+exports.updateBooking = async (req, res) => {
   const { id } = req.params;
   const { guestid, staffid, roomid, checkout_date, checkin_date, paymentid, status } = req.body;
-  db.query(
-    'UPDATE Bookings SET guestid = ?, staffid = ?, roomid = ?, checkout_date = ?, checkin_date = ?, paymentid = ?, status = ? WHERE id = ?',
-    [guestid, staffid, roomid, checkout_date, checkin_date, paymentid, status, id],
-    (error, results) => {
-      if (error) return res.status(500).send(error);
-      res.json({ message: 'Booking updated successfully' });
+  try {
+    const booking = await Booking.findByPk(id);
+    if (!booking) {
+      return res.status(404).json({ error: 'Booking not found' });
     }
-  );
+    await booking.update({
+      guestid,
+      staffid,
+      roomid,
+      checkout_date,
+      checkin_date,
+      paymentid,
+      status,
+    });
+    res.json({ message: 'Booking updated successfully' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
 };
 
 // Delete booking by ID
-exports.deleteBooking = (req, res) => {
+exports.deleteBooking = async (req, res) => {
   const { id } = req.params;
-  db.query('DELETE FROM Bookings WHERE id = ?', [id], (error, results) => {
-    if (error) return res.status(500).send(error);
+  try {
+    const booking = await Booking.findByPk(id);
+    if (!booking) {
+      return res.status(404).json({ error: 'Booking not found' });
+    }
+    await booking.destroy();
     res.json({ message: 'Booking deleted successfully' });
-  });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
 };

@@ -1,54 +1,80 @@
-const db = require('../config/db');
+const { Room } = require('../models'); // Import the Room model
 
 // Get all rooms
-exports.getAllRooms = (req, res) => {
-  db.query('SELECT * FROM Room', (error, results) => {
-    if (error) return res.status(500).send(error);
-    res.json(results);
-  });
+exports.getAllRooms = async (req, res) => {
+  try {
+    const rooms = await Room.findAll();
+    res.json(rooms);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
 };
 
 // Get room by ID
-exports.getRoomById = (req, res) => {
+exports.getRoomById = async (req, res) => {
   const { id } = req.params;
-  db.query('SELECT * FROM Room WHERE id = ?', [id], (error, results) => {
-    if (error) return res.status(500).send(error);
-    res.json(results[0]);
-  });
+  try {
+    const room = await Room.findByPk(id);
+    if (!room) {
+      return res.status(404).json({ error: 'Room not found' });
+    }
+    res.json(room);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
 };
 
 // Create new room
-exports.createRoom = (req, res) => {
+exports.createRoom = async (req, res) => {
   const { type, description, status } = req.body;
-  db.query(
-    'INSERT INTO Room (type, description, status) VALUES (?, ?, ?)',
-    [type, description, status],
-    (error, results) => {
-      if (error) return res.status(500).send(error);
-      res.status(201).json({ id: results.insertId });
-    }
-  );
+  try {
+    const newRoom = await Room.create({
+      type,
+      description,
+      status,
+    });
+    res.status(201).json(newRoom);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
 };
 
 // Update room by ID
-exports.updateRoom = (req, res) => {
+exports.updateRoom = async (req, res) => {
   const { id } = req.params;
   const { type, description, status } = req.body;
-  db.query(
-    'UPDATE Room SET type = ?, description = ?, status = ? WHERE id = ?',
-    [type, description, status, id],
-    (error, results) => {
-      if (error) return res.status(500).send(error);
-      res.json({ message: 'Room updated successfully' });
+  try {
+    const room = await Room.findByPk(id);
+    if (!room) {
+      return res.status(404).json({ error: 'Room not found' });
     }
-  );
+    await room.update({
+      type,
+      description,
+      status,
+    });
+    res.json({ message: 'Room updated successfully', room });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
 };
 
 // Delete room by ID
-exports.deleteRoom = (req, res) => {
+exports.deleteRoom = async (req, res) => {
   const { id } = req.params;
-  db.query('DELETE FROM Room WHERE id = ?', [id], (error, results) => {
-    if (error) return res.status(500).send(error);
+  try {
+    const room = await Room.findByPk(id);
+    if (!room) {
+      return res.status(404).json({ error: 'Room not found' });
+    }
+    await room.destroy();
     res.json({ message: 'Room deleted successfully' });
-  });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
 };

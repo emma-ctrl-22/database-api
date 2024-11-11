@@ -1,49 +1,82 @@
-const db = require('../config/db');
+const { Guest } = require('../models'); // Import the Guest model
 
-exports.getAllGuests = (req, res) => {
-  db.query('SELECT * FROM Guest', (error, results) => {
-    if (error) return res.status(500).send(error);
-    res.json(results);
-  });
+// Get all guests
+exports.getAllGuests = async (req, res) => {
+  try {
+    const guests = await Guest.findAll();
+    res.json(guests);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
 };
 
-exports.getGuestById = (req, res) => {
+// Get guest by ID
+exports.getGuestById = async (req, res) => {
   const { id } = req.params;
-  db.query('SELECT * FROM Guest WHERE id = ?', [id], (error, results) => {
-    if (error) return res.status(500).send(error);
-    res.json(results[0]);
-  });
-};
-
-exports.createGuest = (req, res) => {
-  const { firstname, lastname, gender, email } = req.body;
-  db.query(
-    'INSERT INTO Guest (firstname, lastname, gender, email) VALUES (?, ?, ?, ?)',
-    [firstname, lastname, gender, email],
-    (error, results) => {
-      if (error) return res.status(500).send(error);
-      res.status(201).json({ id: results.insertId });
+  try {
+    const guest = await Guest.findByPk(id);
+    if (!guest) {
+      return res.status(404).json({ error: 'Guest not found' });
     }
-  );
+    res.json(guest);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
 };
 
-exports.updateGuest = (req, res) => {
+// Create a new guest
+exports.createGuest = async (req, res) => {
+  const { firstname, lastname, gender, email } = req.body;
+  try {
+    const newGuest = await Guest.create({
+      firstname,
+      lastname,
+      gender,
+      email,
+    });
+    res.status(201).json(newGuest);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
+// Update guest by ID
+exports.updateGuest = async (req, res) => {
   const { id } = req.params;
   const { firstname, lastname, gender, email } = req.body;
-  db.query(
-    'UPDATE Guest SET firstname = ?, lastname = ?, gender = ?, email = ? WHERE id = ?',
-    [firstname, lastname, gender, email, id],
-    (error, results) => {
-      if (error) return res.status(500).send(error);
-      res.json({ message: 'Guest updated successfully' });
+  try {
+    const guest = await Guest.findByPk(id);
+    if (!guest) {
+      return res.status(404).json({ error: 'Guest not found' });
     }
-  );
+    await guest.update({
+      firstname,
+      lastname,
+      gender,
+      email,
+    });
+    res.json({ message: 'Guest updated successfully', guest });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
 };
 
-exports.deleteGuest = (req, res) => {
+// Delete guest by ID
+exports.deleteGuest = async (req, res) => {
   const { id } = req.params;
-  db.query('DELETE FROM Guest WHERE id = ?', [id], (error, results) => {
-    if (error) return res.status(500).send(error);
+  try {
+    const guest = await Guest.findByPk(id);
+    if (!guest) {
+      return res.status(404).json({ error: 'Guest not found' });
+    }
+    await guest.destroy();
     res.json({ message: 'Guest deleted successfully' });
-  });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
 };

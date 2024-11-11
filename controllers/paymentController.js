@@ -1,54 +1,84 @@
-const db = require('../config/db');
+const { Payment } = require('../models'); // Import the Payment model
 
 // Get all payments
-exports.getAllPayments = (req, res) => {
-  db.query('SELECT * FROM Payments', (error, results) => {
-    if (error) return res.status(500).send(error);
-    res.json(results);
-  });
+exports.getAllPayments = async (req, res) => {
+  try {
+    const payments = await Payment.findAll();
+    res.json(payments);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
 };
 
 // Get payment by ID
-exports.getPaymentById = (req, res) => {
+exports.getPaymentById = async (req, res) => {
   const { id } = req.params;
-  db.query('SELECT * FROM Payments WHERE id = ?', [id], (error, results) => {
-    if (error) return res.status(500).send(error);
-    res.json(results[0]);
-  });
+  try {
+    const payment = await Payment.findByPk(id);
+    if (!payment) {
+      return res.status(404).json({ error: 'Payment not found' });
+    }
+    res.json(payment);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
 };
 
-// Create new payment
-exports.createPayment = (req, res) => {
+// Create a new payment
+exports.createPayment = async (req, res) => {
   const { amount, createdAt, Bookingid, guestid, paymentmethod } = req.body;
-  db.query(
-    'INSERT INTO Payments (amount, createdAt, Bookingid, guestid, paymentmethod) VALUES (?, ?, ?, ?, ?)',
-    [amount, createdAt, Bookingid, guestid, paymentmethod],
-    (error, results) => {
-      if (error) return res.status(500).send(error);
-      res.status(201).json({ id: results.insertId });
-    }
-  );
+  try {
+    const newPayment = await Payment.create({
+      amount,
+      createdAt,
+      Bookingid,
+      guestid,
+      paymentmethod,
+    });
+    res.status(201).json(newPayment);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
 };
 
 // Update payment by ID
-exports.updatePayment = (req, res) => {
+exports.updatePayment = async (req, res) => {
   const { id } = req.params;
   const { amount, createdAt, Bookingid, guestid, paymentmethod } = req.body;
-  db.query(
-    'UPDATE Payments SET amount = ?, createdAt = ?, Bookingid = ?, guestid = ?, paymentmethod = ? WHERE id = ?',
-    [amount, createdAt, Bookingid, guestid, paymentmethod, id],
-    (error, results) => {
-      if (error) return res.status(500).send(error);
-      res.json({ message: 'Payment updated successfully' });
+  try {
+    const payment = await Payment.findByPk(id);
+    if (!payment) {
+      return res.status(404).json({ error: 'Payment not found' });
     }
-  );
+    await payment.update({
+      amount,
+      createdAt,
+      Bookingid,
+      guestid,
+      paymentmethod,
+    });
+    res.json({ message: 'Payment updated successfully', payment });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
 };
 
 // Delete payment by ID
-exports.deletePayment = (req, res) => {
+exports.deletePayment = async (req, res) => {
   const { id } = req.params;
-  db.query('DELETE FROM Payments WHERE id = ?', [id], (error, results) => {
-    if (error) return res.status(500).send(error);
+  try {
+    const payment = await Payment.findByPk(id);
+    if (!payment) {
+      return res.status(404).json({ error: 'Payment not found' });
+    }
+    await payment.destroy();
     res.json({ message: 'Payment deleted successfully' });
-  });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
 };

@@ -1,54 +1,87 @@
-const db = require('../config/db');
+const { ServiceRecord } = require('../models'); // Import the ServiceRecord model
 
 // Get all service records
-exports.getAllServiceRecords = (req, res) => {
-  db.query('SELECT * FROM ServiceRecords', (error, results) => {
-    if (error) return res.status(500).send(error);
-    res.json(results);
-  });
+exports.getAllServiceRecords = async (req, res) => {
+  try {
+    const serviceRecords = await ServiceRecord.findAll();
+    res.json(serviceRecords);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
 };
 
 // Get service record by ID
-exports.getServiceRecordById = (req, res) => {
+exports.getServiceRecordById = async (req, res) => {
   const { id } = req.params;
-  db.query('SELECT * FROM ServiceRecords WHERE id = ?', [id], (error, results) => {
-    if (error) return res.status(500).send(error);
-    res.json(results[0]);
-  });
+  try {
+    const serviceRecord = await ServiceRecord.findByPk(id);
+    if (!serviceRecord) {
+      return res.status(404).json({ error: 'Service record not found' });
+    }
+    res.json(serviceRecord);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
 };
 
 // Create new service record
-exports.createServiceRecord = (req, res) => {
-  const { guestid, staffid, amountpaid, date, paymentid, status } = req.body;
-  db.query(
-    'INSERT INTO ServiceRecords (guestid, staffid, amountpaid, date, paymentid, status) VALUES (?, ?, ?, ?, ?, ?)',
-    [guestid, staffid, amountpaid, date, paymentid, status],
-    (error, results) => {
-      if (error) return res.status(500).send(error);
-      res.status(201).json({ id: results.insertId });
-    }
-  );
+exports.createServiceRecord = async (req, res) => {
+  const { guestId, staffId, amountPaid, paymentId, status } = req.body;
+  console.log(req.body);
+  try {
+    const newServiceRecord = await ServiceRecord.create({
+      guestId,
+      staffId,
+      amountPaid,
+    
+      paymentId,
+      status,
+    });
+    res.status(201).json(newServiceRecord);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
 };
 
 // Update service record by ID
-exports.updateServiceRecord = (req, res) => {
+exports.updateServiceRecord = async (req, res) => {
   const { id } = req.params;
-  const { guestid, staffid, amountpaid, date, paymentid, status } = req.body;
-  db.query(
-    'UPDATE ServiceRecords SET guestid = ?, staffid = ?, amountpaid = ?, date = ?, paymentid = ?, status = ? WHERE id = ?',
-    [guestid, staffid, amountpaid, date, paymentid, status, id],
-    (error, results) => {
-      if (error) return res.status(500).send(error);
-      res.json({ message: 'Service record updated successfully' });
+  const { guestId, staffId, amountPaid, date, paymentId, status } = req.body;
+  try {
+    const serviceRecord = await ServiceRecord.findByPk(id);
+    if (!serviceRecord) {
+      return res.status(404).json({ error: 'Service record not found' });
     }
-  );
+    await serviceRecord.update({
+      guestId,
+      staffId,
+      amountPaid,
+      date,
+      paymentId,
+      status,
+    });
+    res.json({ message: 'Service record updated successfully', serviceRecord });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
 };
 
 // Delete service record by ID
-exports.deleteServiceRecord = (req, res) => {
+exports.deleteServiceRecord = async (req, res) => {
   const { id } = req.params;
-  db.query('DELETE FROM ServiceRecords WHERE id = ?', [id], (error, results) => {
-    if (error) return res.status(500).send(error);
+  try {
+    const serviceRecord = await ServiceRecord.findByPk(id);
+    if (!serviceRecord) {
+      return res.status(404).json({ error: 'Service record not found' });
+    }
+    await serviceRecord.destroy();
     res.json({ message: 'Service record deleted successfully' });
-  });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
 };
