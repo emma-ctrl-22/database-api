@@ -29,7 +29,7 @@ exports.getServiceRecordById = async (req, res) => {
 // Create new service record
 exports.createServiceRecord = async (req, res) => {
   const { guestId, staffId, amountPaid, paymentId, status } = req.body;
-  console.log(req.body);
+  console.log(guestId,staffId,amountPaid,paymentId,status,'payload');
   try {
     const newServiceRecord = await ServiceRecord.create({
       guestId,
