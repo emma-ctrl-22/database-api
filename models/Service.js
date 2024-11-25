@@ -4,6 +4,7 @@ module.exports = (sequelize) => {
   class Service extends Model {}
 
   Service.init({
+    serviceId: {type:DataTypes.STRING,unique: true},
     ServiceName: DataTypes.STRING,
     price: DataTypes.DECIMAL(10, 2)
   }, {
@@ -12,7 +13,7 @@ module.exports = (sequelize) => {
   });
 
   Service.associate = (models) => {
-    Service.belongsTo(models.Staff, { foreignKey: 'staffId' });
+    Service.belongsTo(models.Staff, { foreignKey: 'StaffId' });
   };
 
   return Service;

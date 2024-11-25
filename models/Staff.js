@@ -9,11 +9,24 @@ module.exports = (sequelize) => {
     position: DataTypes.STRING,
     email: {
       type: DataTypes.STRING,
-      unique: true
-    }
+      unique: true,
+    },
+    role: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    StaffId: {
+      type: DataTypes.STRING,
+      unique: true,
+      allowNull: false,
+    },
+    password: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
   }, {
     sequelize,
-    modelName: 'Staff'
+    modelName: 'Staff',
   });
 
   return Staff;

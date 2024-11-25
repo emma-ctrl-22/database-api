@@ -12,7 +12,7 @@ module.exports = (sequelize) => {
   });
 
   Payment.associate = (models) => {
-    Payment.belongsTo(models.Guest, { foreignKey: 'guestid' });
+    Payment.belongsTo(models.Guest, { foreignKey: 'guestId' });
     Payment.belongsTo(models.Booking, { foreignKey: 'Bookingid' });
   };
 

@@ -29,8 +29,14 @@ exports.getRoomById = async (req, res) => {
 // Create new room
 exports.createRoom = async (req, res) => {
   const { type, description, status } = req.body;
+
   try {
+    // Generate room number
+    const count = await Room.count();
+    const roomNumber = `RM${String(count + 1).padStart(3, '0')}`; // Generates RM001, RM002, etc.
+
     const newRoom = await Room.create({
+      roomNumber,
       type,
       description,
       status,
@@ -46,11 +52,13 @@ exports.createRoom = async (req, res) => {
 exports.updateRoom = async (req, res) => {
   const { id } = req.params;
   const { type, description, status } = req.body;
+
   try {
     const room = await Room.findByPk(id);
     if (!room) {
       return res.status(404).json({ error: 'Room not found' });
     }
+
     await room.update({
       type,
       description,

@@ -1,5 +1,6 @@
 const express = require('express');
 const app = express();
+const cors = require('cors');
 require('dotenv').config();
 const db = require('./models'); // Import the models
 
@@ -9,6 +10,8 @@ db.sequelize.authenticate()
   .catch((err) => console.error('Unable to connect to the database:', err));
 
 // Middleware
+app.use(cors()); // Use CORS middleware
+
 app.use(express.json());
 
 // Import routes

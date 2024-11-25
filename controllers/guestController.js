@@ -1,5 +1,13 @@
 const { Guest } = require('../models'); // Import the Guest model
 
+// Function to generate the next GuestId
+const generateGuestId = async () => {
+  const guests = await Guest.findAll();
+  const count = guests.length;
+  const nextId = count + 1; // Increment for the new guest
+  return `GUEST${String(nextId).padStart(3, '0')}`; // Format as GUEST001, GUEST002, etc.
+};
+
 // Get all guests
 exports.getAllGuests = async (req, res) => {
   try {
@@ -30,7 +38,9 @@ exports.getGuestById = async (req, res) => {
 exports.createGuest = async (req, res) => {
   const { firstname, lastname, gender, email } = req.body;
   try {
+    const newGuestId = await generateGuestId(); // Generate GuestId
     const newGuest = await Guest.create({
+      GuestId: newGuestId, // Add GuestId to the payload
       firstname,
       lastname,
       gender,

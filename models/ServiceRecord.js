@@ -13,8 +13,8 @@ module.exports = (sequelize) => {
   });
 
   ServiceRecord.associate = (models) => {
-    ServiceRecord.belongsTo(models.Guest, { foreignKey: 'guestid' });
-    ServiceRecord.belongsTo(models.Staff, { foreignKey: 'staffid' });
+    ServiceRecord.belongsTo(models.Guest, { foreignKey: 'guestId' });
+    ServiceRecord.belongsTo(models.Staff, { foreignKey: 'staffId' });
     ServiceRecord.belongsTo(models.Payment, { foreignKey: 'paymentid' });
   };
 
